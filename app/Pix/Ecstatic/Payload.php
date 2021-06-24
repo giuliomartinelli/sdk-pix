@@ -1,19 +1,23 @@
 <?php
 /**
  * @author Giulio Augusto Martinelli
- * @version 1.0.0
+ * @version 0.0.1
  */
 
 
 namespace App\Pix\Ecstatic;
 
+use App\Utils;
 
+/**
+ * Class Payload
+ * @package App\Pix\Ecstatic
+ */
 class Payload
 {
     /**
      * IDs do Payload do Pix
-     * @author William Costa
-     * @link https://github.com/william-costa/wdev-qrcode-pix-estatico-php
+     *
      * @var string
      */
     const ID_PAYLOAD_FORMAT_INDICATOR = '00';
@@ -31,16 +35,70 @@ class Payload
     const ID_ADDITIONAL_DATA_FIELD_TEMPLATE_TXID = '05';
     const ID_CRC16 = '63';
 
-
+    /**
+     * Chave PIX
+     *
+     * @var string
+     */
     private $pixKey;
+
+    /**
+     * Descrição do PIX
+     *
+     * @var string
+     */
     private $description;
+
+    /**
+     * Nome do pagador
+     *
+     * @var string
+     */
     private $merchantName;
+
+    /**
+     * Cidade do pagador
+     *
+     * @var string
+     */
     private $merchantCity;
+
+    /**
+     * txid da transação
+     *
+     * @var string
+     */
     private $txid;
+
+    /**
+     * valor da transação
+     *
+     * @var string
+     */
     private $amount;
 
     /**
-     * @param mixed $pixKey
+     * instancia da Class App\Utils
+     *
+     * @var Utils
+     */
+    private $utils;
+
+    /**
+     * construtor instancia a Class App\Utils
+     *
+     * @return void
+     */
+
+    public function __construct()
+    {
+        $this->utils = new Utils();
+    }
+
+    /**
+     * Set pixKey
+     *
+     * @param string $pixKey
      * @return Payload
      */
     public function setPixKey($pixKey)
@@ -50,7 +108,9 @@ class Payload
     }
 
     /**
-     * @param mixed $description
+     * Set description
+     *
+     * @param string $description
      * @return Payload
      */
     public function setDescription($description)
@@ -60,7 +120,9 @@ class Payload
     }
 
     /**
-     * @param mixed $merchantName
+     * Set merchantName
+     *
+     * @param string $merchantName
      * @return Payload
      */
     public function setMerchantName($merchantName)
@@ -70,7 +132,9 @@ class Payload
     }
 
     /**
-     * @param mixed $merchantCity
+     * Set merchantCity
+     *
+     * @param string $merchantCity
      * @return Payload
      */
     public function setMerchantCity($merchantCity)
@@ -80,7 +144,9 @@ class Payload
     }
 
     /**
-     * @param mixed $txid
+     * Set txid
+     *
+     * @param string $txid
      * @return Payload
      */
     public function setTxid($txid)
@@ -90,21 +156,35 @@ class Payload
     }
 
     /**
+     * Set amount
+     *
      * @param mixed $amount
      * @return Payload
      */
-    public function setAmount($amount)
+    public function setAmount(float $amount)
     {
         $this->amount = (string) number_format($amount,2,'.','');
         return $this;
     }
 
+    /**
+     * getValue pega o size do $value e concatena com $id.$size.$value para a construção corretas das
+     * linhas do payload
+     *
+     * @param $id
+     * @param $value
+     * @return string $id.$size.$value
+     */
     private function getValue($id, $value)
     {
         $size = str_pad(strlen($value),2,'0',STR_PAD_LEFT);
         return $id.$size.$value;
     }
 
+    /**
+     *
+     * @return string
+     */
     private function getMerchantAccountInformation()
     {
         $gui = $this->getValue(self::ID_MERCHANT_ACCOUNT_INFORMATION_GUI,'br.gov.bcb.pix');
@@ -113,6 +193,10 @@ class Payload
         return $this->getValue(self::ID_MERCHANT_ACCOUNT_INFORMATION,$gui.$key.$description);
     }
 
+    /**
+     *
+     * @return string
+     */
     private function getAdditionalDataFieldTemplate()
     {
         $txid = $this->getValue(self::ID_ADDITIONAL_DATA_FIELD_TEMPLATE_TXID,$this->txid);
@@ -120,7 +204,10 @@ class Payload
     }
 
     /**
-     * @return
+     * gera o payload completo para uso como Pix copia e cola para ser usado corretamente precisa setar as
+     * variveis $pixKey, $description, $merchantName, $merchantCity, $txid, $amount
+     *
+     * @return string
      */
     function generatePayload ()
     {
@@ -130,46 +217,34 @@ class Payload
                    $this->getValue(self::ID_TRANSACTION_CURRENCY,'986').
                    $this->getValue(self::ID_TRANSACTION_AMOUNT,$this->amount).
                    $this->getValue(self::ID_COUNTRY_CODE,'BR').
-                   $this->getValue(self::ID_MERCHANT_NAME,$this->prepareString($this->merchantName)).
-                   $this->getValue(self::ID_MERCHANT_CITY,$this->prepareString($this->merchantCity)).
+                   $this->getValue(self::ID_MERCHANT_NAME,$this->utils->prepareString($this->merchantName)).
+                   $this->getValue(self::ID_MERCHANT_CITY,$this->utils->prepareString($this->merchantCity)).
                    $this->getAdditionalDataFieldTemplate();
-
         return $payload.$this->getCRC16($payload);
     }
 
     /**
-     * IDs do Payload do Pix
      * Método responsável por calcular o valor da hash de validação do código pix
-     * @author William Costa
-     * @link https://github.com/william-costa/wdev-qrcode-pix-estatico-php
+     *
      * @return string
      */
     private function getCRC16($payload) {
         //ADICIONA DADOS GERAIS NO PAYLOAD
         $payload .= self::ID_CRC16.'04';
-
         //DADOS DEFINIDOS PELO BACEN
-        $polinomio = 0x1021;
-        $resultado = 0xFFFF;
-
+        $polynomial = 0x1021;
+        $res = 0xFFFF;
         //CHECKSUM
         if (($length = strlen($payload)) > 0) {
             for ($offset = 0; $offset < $length; $offset++) {
-                $resultado ^= (ord($payload[$offset]) << 8);
+                $res ^= (ord($payload[$offset]) << 8);
                 for ($bitwise = 0; $bitwise < 8; $bitwise++) {
-                    if (($resultado <<= 1) & 0x10000) $resultado ^= $polinomio;
-                    $resultado &= 0xFFFF;
+                    if (($res <<= 1) & 0x10000) $res ^= $polynomial;
+                    $res &= 0xFFFF;
                 }
             }
         }
-
         //RETORNA CÓDIGO CRC16 DE 4 CARACTERES
-        return self::ID_CRC16.'04'.strtoupper(dechex($resultado));
-    }
-
-
-    public function prepareString($string){
-        $string = preg_replace(array("/(á|à|ã|â|ä)/","/(Á|À|Ã|Â|Ä)/","/(é|è|ê|ë)/","/(É|È|Ê|Ë)/","/(í|ì|î|ï)/","/(Í|Ì|Î|Ï)/","/(ó|ò|õ|ô|ö)/","/(Ó|Ò|Õ|Ô|Ö)/","/(ú|ù|û|ü)/","/(Ú|Ù|Û|Ü)/","/(ñ)/","/(Ñ)/"),explode(" ","a A e E i I o O u U n N"),$string);
-        return mb_strtoupper($string, 'UTF-8');
+        return self::ID_CRC16.'04'.strtoupper(dechex($res));
     }
 }

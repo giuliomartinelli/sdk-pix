@@ -7,6 +7,9 @@
 
 Primeria versão SDK para geração de payload de pagameto via Pix
 
+
+![](https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Logo_-_pix_powered_by_Banco_Central_%28Brazil%2C_2020%29.png/640px-Logo_-_pix_powered_by_Banco_Central_%28Brazil%2C_2020%29.png)
+
 ## Instalação
 
 Composer:
@@ -49,15 +52,9 @@ echo $payload;
 
 ## Meta
 
-Giulio Augusto Martinelli – [@giuliomartinelli](https://twitter.com/...) – giulioaugustomartinelli@gmail.com
+Giulio Augusto Martinelli – [@giuliomartinelli](https://github.com/giuliomartinelli/sdk-pix) – giulioaugustomartinelli@gmail.com
 
-Distribuído sob a licença XYZ. Veja `LICENSE` para mais informações.
+Distribuído sob a licença MIT. Veja `LICENSE` para mais informações.
 
-[https://github.com/giuliomartinelli/github-link](https://github.com/giuliomartinelli/)
+[https://github.com/giuliomartinelli/sdk-pix](https://github.com/giuliomartinelli/sdk-pix)
 
-[npm-image]: https://img.shields.io/npm/v/datadog-metrics.svg?style=flat-square
-[npm-url]: https://npmjs.org/package/datadog-metrics
-[npm-downloads]: https://img.shields.io/npm/dm/datadog-metrics.svg?style=flat-square
-[travis-image]: https://img.shields.io/travis/dbader/node-datadog-metrics/master.svg?style=flat-square
-[travis-url]: https://travis-ci.org/dbader/node-datadog-metrics
-[wiki]: https://github.com/seunome/seuprojeto/wiki
